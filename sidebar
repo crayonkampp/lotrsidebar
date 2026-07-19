@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>LOTR Chess Sidebar — Interactive Demo (no auto-refresh)</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    /* Inline styles scoped to #lotr-widget */
+    #lotr-widget{box-sizing:border-box; width:320px; max-width:100%; font-family: Georgia, "Times New Roman", Times, serif; color:#efe6d6; background: linear-gradient(180deg,#24180f 0%, #19110b 100%); padding:16px; border-radius:12px; border:2px solid rgba(212,180,96,0.08); box-shadow:0 10px 30px rgba(0,0,0,0.6); line-height:1.35;}
+    .lotr-top{display:flex;gap:12px;align-items:center;margin-bottom:8px}
+    .club-icon{width:72px;height:72px;border-radius:50%;flex:0 0 72px;border:3px solid rgba(212,180,96,0.18);overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,0.6);background:#1a1208;display:flex;align-items:center;justify-content:center}
+    .club-icon img{width:100%;height:100%;object-fit:cover;display:block}
+    .club-title{flex:1}
+    .club-title .small{font-size:0.78rem;color:#c8bba6}
+    .club-title .name{font-size:1.25rem;color:#d4b460;font-weight:700;letter-spacing:0.6px}
+    .club-title .tag{font-size:0.82rem;color:#c8bba6;margin-top:4px}
+
+    .lotr-nav{display:flex;flex-direction:column;gap:8px;margin:12px 0}
+    .lotr-button{display:inline-flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.06));color:var(--text,#efe6d6);text-decoration:none;border:1px solid rgba(255,255,255,0.02);cursor:pointer;transition:transform .12s ease, box-shadow .12s ease}
+    .lotr-button:hover,.lotr-button:focus{transform:translateY(-3px);box-shadow:0 10px 30px rgba(0,0,0,0.6);outline:2px solid rgba(212,180,96,0.12)}
+    .lotr-button .icon{width:20px;height:20px;opacity:0.95;flex:0 0 20px}
+
+    .lotr-block{background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(0,0,0,0.03));padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.02);color:#c8bba6;font-size:0.95rem}
+    .lotr-block h3{margin:0 0 6px 0;color:#d4b460;font-size:1rem}
+
+    .members-list{display:flex;flex-direction:column;gap:6px;margin-top:6px}
+    .member-line{display:flex;align-items:center;gap:8px}
+    .member-avatar{width:34px;height:34px;border-radius:50%;background:#2b2015;flex:0 0 34px;overflow:hidden;border:1px solid rgba(255,255,255,0.03)}
+    .member-avatar img{width:100%;height:100%;object-fit:cover}
+    .member-name{font-size:0.9rem;color:#efe6d6;cursor:pointer}
+
+    .music-row{display:flex;align-items:center;gap:8px;margin-top:10px}
+    .music-controls{display:flex;gap:8px;align-items:center}
+    .play-btn{width:36px;height:36px;border-radius:8px;background:#d4b460;color:#24180f;border:none;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-weight:700;box-shadow:0 4px 10px rgba(0,0,0,0.45)}
+    .play-btn[aria-pressed="true"]{box-shadow:0 1px 6px rgba(0,0,0,0.3);transform:translateY(1px)}
+    .volume{width:110px}
+    .hint{font-size:0.8rem;color:#c8bba6}
+
+    .lotr-footer{font-size:0.78rem;color:rgba(255,255,255,0.6);text-align:center;margin-top:12px}
+    @media (max-width:360px){#lotr-widget{padding:12px}.club-icon{width:60px;height:60px}}
+  </style>
+</head>
+<body>
+  <aside id="lotr-widget" role="complementary" aria-label="LOTR chess club sidebar">
+    <!-- Header -->
+    <div class="lotr-top">
+      <div class="club-icon" title="Club icon">
+        <img src="https://images.chesscomfiles.com/uploads/v1/group/362713.51cb3fb0.160x160o.1288f45dd362@2x.jpg" alt="Club icon">
+      </div>
+
+      <div class="club-title">
+        <div class="small">The</div>
+        <div class="name">J.R.R. Tolkien Chess Team</div>
+        <div class="tag">Fellowship of Chess • Friendly play</div>
+      </div>
+    </div>
+
+    <!-- Navigation (repo link removed) -->
+    <nav class="lotr-nav" aria-label="Club links">
+      <a class="lotr-button" data-href="https://www.chess.com/tournaments" role="link" tabindex="0">
+        <svg class="icon" viewBox="0 0 24 24" width="20" height="20" fill="#d4b460" aria-hidden="true"><path d="M3 3h18v2H3zM5 7h14v10H5zM7 9v6h2V9z"/></svg>
+        <span>Tournaments</span>
+      </a>
+
+      <a class="lotr-button" data-href="https://www.chess.com/club/members" role="link" tabindex="0">
+        <svg class="icon" viewBox="0 0 24 24" width="20" height="20" fill="#d4b460" aria-hidden="true"><path d="M12 12c2.7 0 8 1.3 8 4v2H4v-2c0-2.7 5.3-4 8-4zm0-2a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/></svg>
+        <span>Members</span>
+      </a>
+
+      <a class="lotr-button" data-href="https://www.chess.com/clubs/forum/view/staff-info" role="link" tabindex="0">
+        <svg class="icon" viewBox="0 0 24 24" width="20" height="20" fill="#d4b460" aria-hidden="true"><path d="M12 2l4 4-4 4-4-4 4-4zm0 10a6 6 0 0 1 6 6v2H6v-2a6 6 0 0 1 6-6z"/></svg>
+        <span>Staff Info</span>
+      </a>
+    </nav>
+
+    <!-- On this day -->
+    <div class="lotr-block" aria-live="polite">
+      <h3>On this day</h3>
+      <div class="hint">"May your moves be bold and your rooks true." — Bilbo B.</div>
+    </div>
+
+    <!-- Newest members (manual refresh only) -->
+    <div class="lotr-block" style="margin-top:12px" aria-live="polite">
+      <h3>Newest members (live)</h3>
+      <div id="members-area">
+        <div class="hint" id="members-status">Loading newest members…</div>
+      </div>
+
+      <div style="display:flex;gap:8px;margin-top:8px;align-items:center">
+        <button id="refresh-members" class="play-btn" title="Refresh members" aria-pressed="false">⟳</button>
+        <div style="font-size:0.82rem;color:#c8bba6">Click Refresh to update members. If blocked, host this file on GitHub Pages or use a CORS proxy.</div>
+      </div>
+    </div>
+
+    <!-- Music player -->
+    <div class="lotr-block" style="margin-top:12px">
+      <h3>Background music</h3>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div class="music-row">
+          <div class="music-controls">
+            <button id="play-toggle" class="play-btn" aria-pressed="false" title="Play / Pause">►</button>
+            <div style="display:flex;flex-direction:column">
+              <strong style="color:#efe6d6;font-size:0.95rem">Shire Ambience (demo)</strong>
+              <span class="hint">Click play — replace the source with your MP3 in the code</span>
+            </div>
+          </div>
+        </div>
+
+        <audio id="bg-audio" preload="none">
+          <source src="https://cdn.clyppy.io/temp/youtube_7ICBfZsZ9c_converted.mp3" type="audio/mpeg">
+          Your browser does not support the audio element.
+        </audio>
+
+        <div style="display:flex;gap:8px;align-items:center">
+          <input id="volume" class="volume" type="range" min="0" max="1" step="0.01" value="0.6" aria-label="Volume">
+          <button id="mute-btn" class="lotr-button" style="padding:8px 10px;font-size:0.86rem">Mute</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="lotr-footer" style="margin-top:12px">© J.R.R. Tolkien Chess Team • Play fair, be kind</div>
+  </aside>
+
+  <script>
+    (function(){
+      // CONFIG - change clubSlug if necessary
+      const clubSlug = 'j-r-r-tolkien-chess-team';
+      const membersEndpoint = `https://api.chess.com/pub/club/${clubSlug}/members`;
+      const profileEndpoint = username => `https://api.chess.com/pub/player/${encodeURIComponent(username)}`;
+      const membersArea = document.getElementById('members-area');
+      const membersStatus = document.getElementById('members-status');
+      const refreshBtn = document.getElementById('refresh-members');
+
+      // Fallback avatar generator (initials SVG data URI)
+      function avatarFor(username){
+        const initials = username.split(/[^A-Za-z0-9]+/).map(s=>s[0]).join('').slice(0,2).toUpperCase() || username.slice(0,2).toUpperCase();
+        const bgColors = ['#2b2015','#3a2b20','#272018','#2e2419'];
+        const color = bgColors[username.charCodeAt(0) % bgColors.length];
+        const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='64' height='64'><rect width='100%' height='100%' fill='${color}' rx='32'/><text x='50%' y='55%' font-size='26' text-anchor='middle' fill='#d4b460' font-family='Georgia,sans-serif'>${initials}</text></svg>`;
+        return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+      }
+
+      // Render members list given an array of {username, avatar}
+      function renderMembers(profiles){
+        if(!profiles || profiles.length===0){
+          membersArea.innerHTML = '<div class="hint">No members returned.</div>';
+          return;
+        }
+        const container = document.createElement('div');
+        container.className = 'members-list';
+        profiles.forEach(p => {
+          const line = document.createElement('div');
+          line.className = 'member-line';
+          const avatarWrap = document.createElement('div'); avatarWrap.className = 'member-avatar';
+          const img = document.createElement('img'); img.alt = p.username;
+          img.src = p.avatar || avatarFor(p.username);
+          avatarWrap.appendChild(img);
+          const name = document.createElement('div'); name.className = 'member-name'; name.textContent = p.username;
+          name.addEventListener('click', ()=> window.open('https://www.chess.com/member/' + encodeURIComponent(p.username),'_blank'));
+          line.appendChild(avatarWrap); line.appendChild(name);
+          container.appendChild(line);
+        });
+        membersArea.innerHTML = '';
+        membersArea.appendChild(container);
+      }
+
+      // Fetch members list and then fetch each member's profile to get avatar
+      async function loadMembers(){
+        membersStatus.textContent = 'Loading newest members…';
+        try{
+          const resp = await fetch(membersEndpoint);
+          if(!resp.ok) throw new Error('Members endpoint returned ' + resp.status);
+          const data = await resp.json();
+
+          // Normalize to an array of usernames (the API shapes vary)
+          let users = null;
+          if (Array.isArray(data.members)) users = data.members.map(m => typeof m === 'string' ? m : (m.username || m.name));
+          else if (Array.isArray(data.players)) users = data.players.map(p => p.username || p);
+          else if (Array.isArray(data)) users = data;
+          else {
+            const aggregated = [];
+            for(const k in data){
+              if(Array.isArray(data[k])) aggregated.push(...data[k].map(x=> typeof x==='string' ? x : (x.username||x)));
+            }
+            if(aggregated.length) users = aggregated;
+          }
+
+          if(!users || users.length===0){
+            membersStatus.textContent = 'No member data found in API response.';
+            membersArea.innerHTML = '<pre style="white-space:pre-wrap;color:#c8bba6;font-size:0.85rem;">' + JSON.stringify(data, null, 2) + '</pre>';
+            return;
+          }
+
+          // Select up to 6 newest members (assumes newest at end)
+          const count = Math.min(6, users.length);
+          const selected = users.slice(-count).reverse();
+
+          // For each username, fetch profile to get avatar; use Promise.allSettled
+          const profilePromises = selected.map(u =>
+            fetch(profileEndpoint(u))
+              .then(r => { if(!r.ok) throw new Error('Profile ' + u + ' returned ' + r.status); return r.json(); })
+              .then(profile => ({ username: u, avatar: profile.avatar || null }))
+          );
+
+          const settled = await Promise.allSettled(profilePromises);
+          const profiles = settled.map((r, idx) => {
+            if (r.status === 'fulfilled' && r.value) return r.value;
+            // fallback if profile fetch failed
+            return { username: selected[idx], avatar: null };
+          });
+
+          renderMembers(profiles);
+          membersStatus.textContent = '';
+        } catch(err){
+          membersArea.innerHTML = `
+            <div class="hint" style="margin-bottom:6px">Live members could not be loaded due to CORS or network restrictions.</div>
+            <div style="font-size:0.82rem;color:#c8bba6">To enable live members, host this file on GitHub Pages (or another origin) and allow the browser to fetch chess.com public API, or use a small CORS proxy. Error: ${String(err)}</div>
+          `;
+          console.warn('Members load error:', err);
+        }
+      }
+
+      // initial load (manual only; no auto-refresh)
+      loadMembers();
+
+      refreshBtn.addEventListener('click', ()=>{
+        refreshBtn.setAttribute('aria-pressed','true');
+        loadMembers().finally(()=> refreshBtn.setAttribute('aria-pressed','false'));
+      });
+
+      // Navigation buttons open links in a new tab
+      document.querySelectorAll('.lotr-button').forEach(btn=>{
+        btn.addEventListener('click', e=>{
+          const href = btn.getAttribute('data-href');
+          if(!href) return;
+          window.open(href,'_blank');
+        });
+        btn.addEventListener('keydown', e=>{
+          if(e.key === 'Enter' || e.key === ' ') { e.preventDefault(); btn.click(); }
+        });
+      });
+
+      // Audio controls
+      const audio = document.getElementById('bg-audio');
+      const playToggle = document.getElementById('play-toggle');
+      const volumeSlider = document.getElementById('volume');
+      const muteBtn = document.getElementById('mute-btn');
+
+      audio.volume = parseFloat(volumeSlider.value);
+      playToggle.addEventListener('click', ()=>{
+        if(audio.paused){
+          const p = audio.play();
+          if(p && p.then) p.catch(err=> { console.warn('Autoplay blocked or play failed:', err); });
+          playToggle.textContent = '▌▌';
+          playToggle.setAttribute('aria-pressed','true');
+        } else {
+          audio.pause();
+          playToggle.textContent = '►';
+          playToggle.setAttribute('aria-pressed','false');
+        }
+      });
+
+      volumeSlider.addEventListener('input', ()=> { audio.volume = parseFloat(volumeSlider.value); });
+
+      muteBtn.addEventListener('click', ()=> { audio.muted = !audio.muted; muteBtn.textContent = audio.muted ? 'Unmute' : 'Mute'; });
+
+      audio.addEventListener('ended', ()=> { playToggle.textContent = '►'; playToggle.setAttribute('aria-pressed','false'); });
+    })();
+  </script>
+</body>
+</html>
