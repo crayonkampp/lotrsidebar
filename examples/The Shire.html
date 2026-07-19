@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>The Shire — LOTR Chess Sidebar</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    /* Scoped styles */
+    #lotr-widget{box-sizing:border-box;width:320px;max-width:100%;font-family:Georgia, 'Times New Roman', Times, serif;color:#efe6d6;background:linear-gradient(180deg,#24180f 0%,#19110b 100%);padding:14px;border-radius:12px;border:2px solid rgba(212,180,96,0.08);box-shadow:0 10px 30px rgba(0,0,0,0.6);line-height:1.35}
+    .top{display:flex;gap:12px;align-items:center;margin-bottom:8px}
+    .icon{width:72px;height:72px;border-radius:50%;overflow:hidden;border:3px solid rgba(212,180,96,0.18);box-shadow:0 4px 12px rgba(0,0,0,0.6);background:#1a1208}
+    .icon img{width:100%;height:100%;object-fit:cover;display:block}
+    .title{flex:1}
+    .title .small{font-size:0.78rem;color:#c8bba6}
+    .title .main{font-size:1.15rem;color:#d4b460;font-weight:700;letter-spacing:0.6px}
+    .nav{display:flex;flex-direction:column;gap:8px;margin:12px 0}
+    .btn{display:inline-flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(0,0,0,0.06));color:inherit;text-decoration:none;border:1px solid rgba(255,255,255,0.02);cursor:pointer;transition:transform .12s,box-shadow .12s}
+    .btn:hover,.btn:focus{transform:translateY(-3px);box-shadow:0 10px 30px rgba(0,0,0,0.6);outline:2px solid rgba(212,180,96,0.12)}
+    .block{background:linear-gradient(180deg,rgba(255,255,255,0.01),rgba(0,0,0,0.03));padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.02);color:#c8bba6;font-size:0.95rem}
+    .block h3{margin:0 0 6px 0;color:#d4b460;font-size:1rem}
+    .members{display:flex;flex-direction:column;gap:6px;margin-top:6px}
+    .member{display:flex;align-items:center;gap:8px}
+    .member .pfp{width:34px;height:34px;border-radius:50%;overflow:hidden;border:1px solid rgba(255,255,255,0.03);background:#2b2015}
+    .member .pfp img{width:100%;height:100%;object-fit:cover}
+    .member .name{font-size:0.9rem;color:#efe6d6;cursor:pointer}
+    .controls{display:flex;gap:8px;align-items:center}
+    .play{width:36px;height:36px;border-radius:8px;background:#d4b460;color:#24180f;border:none;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-weight:700}
+    .seek{width:100%;height:8px;appearance:none;background:#2b2015;border-radius:6px}
+    .time{font-size:0.85rem;color:#c8bba6}
+    .footer{font-size:0.78rem;color:rgba(255,255,255,0.6);text-align:center;margin-top:12px}
+    @media(max-width:360px){#lotr-widget{padding:12px}.icon{width:60px;height:60px}}
+  </style>
+</head>
+<body>
+  <aside id="lotr-widget" role="complementary" aria-label="The Shire sidebar">
+    <div class="top">
+      <div class="icon"><img src="https://images.chesscomfiles.com/uploads/v1/group/362713.51cb3fb0.160x160o.1288f45dd362@2x.jpg" alt="Club"></div>
+      <div class="title">
+        <div class="small">The</div>
+        <div class="main">Shire</div>
+      </div>
+    </div>
+
+    <nav class="nav" aria-label="links">
+      <button class="btn" data-href="https://www.chess.com/tournaments">Tournaments</button>
+      <button class="btn" data-href="https://www.chess.com/club/members">Members</button>
+      <button class="btn" data-href="https://www.chess.com/clubs/forum/view/staff-info">Staff</button>
+    </nav>
+
+    <div class="block">
+      <h3>On this day</h3>
+      <div>"May your moves be bold and your rooks true." — Bilbo</div>
+    </div>
+
+    <div class="block" style="margin-top:12px">
+      <h3>Newest members</h3>
+      <div id="members-area"><div class="time" id="members-status">Loading…</div></div>
+      <div style="display:flex;gap:8px;margin-top:8px;align-items:center">
+        <button id="refresh" class="play">⟳</button>
+        <div class="time">Refresh to update</div>
+      </div>
+    </div>
+
+    <div class="block" style="margin-top:12px">
+      <h3>Now playing</h3>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div style="display:flex;align-items:center;gap:10px">
+          <button id="play" class="play" aria-pressed="false">►</button>
+          <div style="display:flex;flex-direction:column">
+            <strong id="track-title">the Shire</strong>
+            <div class="time" id="track-sub">The Shire</div>
+          </div>
+        </div>
+
+        <input id="seek" class="seek" type="range" min="0" max="100" value="0" aria-label="Seek">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div class="time" id="elapsed">0:00</div>
+          <div class="time" id="duration">0:00</div>
+        </div>
+
+        <audio id="audio" preload="none">
+          <source src="https://cdn.clyppy.io/temp/youtube_7ICBfZsZ9c_converted.mp3" type="audio/mpeg">
+        </audio>
+      </div>
+    </div>
+
+    <div class="footer">© The Shire • Play fair</div>
+  </aside>
+
+  <script>
+    (function(){
+      const clubSlug = 'j-r-r-tolkien-chess-team';
+      const membersEndpoint = `https://api.chess.com/pub/club/${clubSlug}/members`;
+      const profileEndpoint = u => `https://api.chess.com/pub/player/${encodeURIComponent(u)}`;
+      const membersArea = document.getElementById('members-area');
+      const membersStatus = document.getElementById('members-status');
+      const refresh = document.getElementById('refresh');
+
+      function avatarFor(u){
+        const initials = u.split(/[^A-Za-z0-9]+/).map(s=>s[0]).join('').slice(0,2).toUpperCase() || u.slice(0,2).toUpperCase();
+        const colors = ['#2b2015','#3a2b20','#272018'];
+        const bg = colors[u.charCodeAt(0) % colors.length];
+        const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='64' height='64'><rect width='100%' height='100%' fill='${bg}' rx='32'/><text x='50%' y='55%' font-size='26' text-anchor='middle' fill='#d4b460' font-family='Georgia,sans-serif'>${initials}</text></svg>`;
+        return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+      }
+
+      function render(profiles){
+        if(!profiles || profiles.length===0){ membersArea.innerHTML = '<div class="time">No members</div>'; return; }
+        const cont = document.createElement('div'); cont.className='members';
+        profiles.forEach(p=>{
+          const r = document.createElement('div'); r.className='member';
+          const a = document.createElement('div'); a.className='pfp'; const img = document.createElement('img'); img.alt=p.username; img.src=p.avatar||avatarFor(p.username); a.appendChild(img);
+          const n = document.createElement('div'); n.className='name'; n.textContent = p.username; n.addEventListener('click', ()=>window.open('https://www.chess.com/member/'+encodeURIComponent(p.username),'_blank'));
+          r.appendChild(a); r.appendChild(n); cont.appendChild(r);
+        });
+        membersArea.innerHTML=''; membersArea.appendChild(cont);
+      }
+
+      async function loadMembers(){
+        membersStatus.textContent='Loading…';
+        try{
+          const r = await fetch(membersEndpoint);
+          if(!r.ok) throw new Error('' + r.status);
+          const data = await r.json();
+          let users = null;
+          if(Array.isArray(data.members)) users = data.members.map(m=> typeof m==='string'?m:(m.username||m.name));
+          else if(Array.isArray(data.players)) users = data.players.map(p=>p.username||p);
+          else if(Array.isArray(data)) users = data;
+          else { const agg=[]; for(const k in data) if(Array.isArray(data[k])) agg.push(...data[k].map(x=> typeof x==='string'?x:(x.username||x))); if(agg.length) users=agg; }
+          if(!users||users.length===0){ membersArea.innerHTML='<div class="time">No member data</div>'; return; }
+          const count = Math.min(3, users.length); const selected = users.slice(-count).reverse();
+          const profs = await Promise.allSettled(selected.map(u=>fetch(profileEndpoint(u)).then(r=>{ if(!r.ok) throw new Error(); return r.json(); }).then(p=>({username:u,avatar:p.avatar||null})).catch(()=>({username:u,avatar:null}))));
+          const results = profs.map((s,i)=> s.status==='fulfilled' ? s.value : {username:selected[i],avatar:null});
+          render(results);
+        }catch(e){ membersArea.innerHTML=`<div class="time">Live members unavailable</div>`; console.warn(e); }
+      }
+
+      // initial load (manual only)
+      loadMembers();
+      refresh.addEventListener('click', ()=>{ refresh.disabled=true; loadMembers().finally(()=>refresh.disabled=false); });
+
+      // Navigation
+      document.querySelectorAll('.btn').forEach(b=>{ b.addEventListener('click', ()=>{ const h=b.getAttribute('data-href'); if(h) window.open(h,'_blank'); }); b.addEventListener('keydown', e=>{ if(e.key==='Enter' || e.key===' ') { e.preventDefault(); b.click(); } }); });
+
+      // Audio controls with progress/time
+      const audio = document.getElementById('audio');
+      const play = document.getElementById('play');
+      const seek = document.getElementById('seek');
+      const elapsed = document.getElementById('elapsed');
+      const duration = document.getElementById('duration');
+      const trackSub = document.getElementById('track-sub');
+
+      function fmt(t){ if(!isFinite(t)) return '0:00'; const m=Math.floor(t/60); const s=Math.floor(t%60).toString().padStart(2,'0'); return `${m}:${s}`; }
+
+      audio.addEventListener('loadedmetadata', ()=>{ duration.textContent = fmt(audio.duration); seek.max = 100; });
+      audio.addEventListener('timeupdate', ()=>{ elapsed.textContent = fmt(audio.currentTime); if(audio.duration) seek.value = (audio.currentTime / audio.duration) * 100; });
+      audio.addEventListener('ended', ()=>{ play.textContent='►'; play.setAttribute('aria-pressed','false'); });
+
+      play.addEventListener('click', ()=>{
+        if(audio.paused){ audio.play().catch(()=>{}); play.textContent='▌▌'; play.setAttribute('aria-pressed','true'); }
+        else { audio.pause(); play.textContent='►'; play.setAttribute('aria-pressed','false'); }
+      });
+
+      seek.addEventListener('input', ()=>{
+        if(audio.duration) audio.currentTime = (seek.value/100) * audio.duration;
+      });
+
+    })();
+  </script>
+</body>
+</html>
