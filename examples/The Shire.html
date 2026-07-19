@@ -68,7 +68,7 @@
           <button id="play" class="play" aria-pressed="false">►</button>
           <div style="display:flex;flex-direction:column">
             <strong id="track-title">the Shire</strong>
-            <div class="time" id="track-sub">Click play</div>
+            <div class="time" id="track-sub">The Shire</div>
           </div>
         </div>
 
@@ -128,7 +128,7 @@
           else if(Array.isArray(data)) users = data;
           else { const agg=[]; for(const k in data) if(Array.isArray(data[k])) agg.push(...data[k].map(x=> typeof x==='string'?x:(x.username||x))); if(agg.length) users=agg; }
           if(!users||users.length===0){ membersArea.innerHTML='<div class="time">No member data</div>'; return; }
-          const count = Math.min(6, users.length); const selected = users.slice(-count).reverse();
+          const count = Math.min(3, users.length); const selected = users.slice(-count).reverse();
           const profs = await Promise.allSettled(selected.map(u=>fetch(profileEndpoint(u)).then(r=>{ if(!r.ok) throw new Error(); return r.json(); }).then(p=>({username:u,avatar:p.avatar||null})).catch(()=>({username:u,avatar:null}))));
           const results = profs.map((s,i)=> s.status==='fulfilled' ? s.value : {username:selected[i],avatar:null});
           render(results);
@@ -157,8 +157,8 @@
       audio.addEventListener('ended', ()=>{ play.textContent='►'; play.setAttribute('aria-pressed','false'); });
 
       play.addEventListener('click', ()=>{
-        if(audio.paused){ audio.play().catch(()=>{}); play.textContent='▌▌'; play.setAttribute('aria-pressed','true'); trackSub.textContent='Playing'; }
-        else { audio.pause(); play.textContent='►'; play.setAttribute('aria-pressed','false'); trackSub.textContent='Paused'; }
+        if(audio.paused){ audio.play().catch(()=>{}); play.textContent='▌▌'; play.setAttribute('aria-pressed','true'); }
+        else { audio.pause(); play.textContent='►'; play.setAttribute('aria-pressed','false'); }
       });
 
       seek.addEventListener('input', ()=>{
